@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Weather Application</string>
+    <string name="action_settings">Settings</string>
+	<string name="degree">c</string>
+	<string name="faranhiet">f</string>
+	<string name="search">search</string>
+	<string name="forecast">Forecast</string>
+	<string name="day">Day</string>
+	<string name="weather">Weather</string>
+	<string name="high">High</string>
+	<string name="low">Low</string>
+	<string name="img">img</string>
+	<string name="app_id">626072157454482</string>
+	
+	<string name="shareCurrentWeather">Post Current Weather</string>
+	<string name="shareWeatherForecast">Post Weather Forecast</string>
+	<string name="cancel">Cancel</string>
+	<string name="postfb">Post to Facebook</string>
+	
+</resources>

@@ -1,0 +1,381 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery-2.0.3.js">
+</script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.13.0/build/cssbase/cssbase-min.css">
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/datatable/assets/skins/sam/datatable.css">
+	
+	<link rel="stylesheet" href="http://yui.yahooapis.com/3.13.0/build/cssbutton/cssbutton.css">	
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"> </script>
+	
+	<script src="http://yui.yahooapis.com/3.13.0/build/yui/yui-min.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.13.0/build/cssnormalize/cssnormalize-min.css">
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.13.0/build/cssgrids-responsive/cssgrids-responsive-min.css">
+	
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
+<script type="text/javascript">
+var dataN="";
+var tempUnit="f";
+window.fbAsyncInit = function()
+{
+	FB.init({
+		appId       : '570736719646028',
+		channelUrl  : 'http://cs-server.usc.edu:38675/HW8/hw8.html',
+		status      : true,
+		cookie      : true,
+		xfbml       : true        
+	});
+};
+
+(function(d) {
+	var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+	if(d.getElementById(id)) { return; }
+	js = d.createElement('script');
+	js.id = id;
+	js.src = "//connect.facebook.net/en_US/all.js";
+	js.async = true;
+	ref.parentNode.insertBefore(js, ref);
+}(document));
+
+function postfb()
+{
+	if(dataN!="")
+	{
+
+	if(document.getElementById('forecast').checked)
+	{
+		var caption = 'Weather Forecast for ' + dataN.weather.location.city;
+		var description = '';
+
+		var i = 0;
+		for(i = 0; i < dataN.weather.forecast.length; ++i)
+		{
+			var forecast = dataN.weather.forecast[i];
+			description += forecast.day + ': ' + forecast.text + ', ' + forecast.highN + '/' + forecast.low + '; ';
+		}
+
+		var picture = 'http://www-scf.usc.edu/~csci571/2013Fall/hw8/weather.jpg';
+		
+		
+	}
+	else
+	{
+		
+		var caption = 'The current condition for ' + dataN.weather.location.city + ' is ' + dataN.weather.condition.text;
+		if(dataN.weather.units.temprature=="f")
+			var uni="F";
+		else
+			var uni="C";
+		var description = 'Temprature is ' + dataN.weather.condition.temp+ '&deg;' + uni;
+		var picture = dataN.weather.img;
+	}
+
+	var region = dataN.weather.location.region;
+	if(region != 'N/A')
+	{
+		region += ", ";
+	}
+	else
+	{
+		region = "";
+		
+	}
+
+	var obj =
+	{
+		method: 'feed',
+		link: dataN.weather.link,
+		picture: picture,
+		name: dataN.weather.location.city+ ", " + region + dataN.weather.location.country,
+		caption: caption,
+		description: description,
+		properties: {"Look at details": {"text": "here", "href": dataN.weather.link}}
+	};
+
+	function callback(response)
+	{
+		if(response)
+		{
+			alert("Posted Successfully");
+		}
+		else
+		{
+			alert("Posting Unsuccessful");
+		}
+	}
+
+	FB.ui(obj, callback);
+	return false;
+	}
+}
+function changedegree()
+{
+	if(tempUnit == "f")
+	{
+		tempUnit = "c";
+	}
+	else
+	{
+		tempUnit = "f";
+	}
+	
+	weather();
+}
+
+
+
+
+function weather()
+{
+	
+	var location= document.getElementById("location").value;
+	if(location.length == 0)
+	{
+		alert("Please enter a location");
+		return false;
+	}
+
+
+	var all_digit_pattern = /^\d{1,}$/g;
+	var digitexp = /^\d{5}$/g;
+	var cityexp = /^.{1,},.{1,}$/g;
+
+	var type = "";
+	if(all_digit_pattern.test(location))
+	{
+		if(digitexp.test(location))
+		{
+			type = "zip_code";
+			
+		}
+		else
+		{
+			$("#emp").hide();
+			$("#error").hide();
+			alert("Invalid Zip code must be five digits\n Example: 90007");
+			
+			return false;
+			
+		}
+	}
+	else if(cityexp.test(location))
+	{
+		type = "city";
+	}
+	else
+	{
+		$("#emp").hide();
+		$("#error").hide();
+		alert("Invalid location: must include state or country separated by comma \n Example: Los Angeles, CA");
+		return false;
+	}
+
+	$.ajax({
+			type: "GET",
+			url:"http://cs-server.usc.edu:38675/examples/myServletWeather?location="+location+"&tempUnit="+tempUnit,
+			dataType: "text",
+			success: function(data)
+			{
+			$("#emp").show();
+					$("#error").hide();
+				var data = JSON.parse(data);
+				dataN=data;
+				var city = data.weather.location.city;
+				if(city=="")
+				{
+				$("#city").html('<h1 class="ch">Weather information cannot be found!</h1>');
+				return false;
+				}
+				
+				city = '<a class="ah" target="_blank" href="' + data.weather.feed + '">' + city + '</a>';
+				
+				var region = data.weather.location.region;
+				var country = data.weather.location.country;
+
+				if(region != 'N/A')
+				{
+					region += ", ";
+				}
+				else
+				{
+					region = "";
+				}
+				$("#city").html('<br/><br/><br/><font size="60px">'+city+'</font><br/>'+ region + country+'<br/><br/><br/><br/>' );
+				
+				
+				var unit = data.weather.units.temprature;			
+				if(unit=="f")
+				{
+					unit="F";
+				}
+				else
+				{
+					unit="C";
+				}
+				var hightemp = '&uarr;' + data.weather.forecast[0].high + "&deg;" + unit;
+				var lowtemp  = "&darr;" + data.weather.forecast[0].low + "&deg;" + unit;
+				var swithtemp = '<a href="#" onclick="changedegree()">' + unit + '</a>';
+				var imgT = '<table border="0" class="cast"><tr><td valign="middle">' + '<img src="' + data.weather.img + '"> </img>' 
+                                            + '</td><td valign="middle" class="ch">' + data.weather.condition.text + '</td></tr></table>';
+				
+				var temps = imgT;
+				temps += hightemp + "&nbsp;&nbsp;&nbsp;&nbsp;" + lowtemp;
+				temps += '<h1 class="temperature" class="ch">' +  data.weather.condition.temp + '<sup class="ch">&deg;' + swithtemp + '</sup></h1>';
+				$("#temps").html(temps);
+				
+				 var i = 0;
+				for(i = 0; i < data.weather.forecast.length; ++i)
+				{
+					data.weather.forecast[i].highN+=data.weather.forecast[i].high;
+					data.weather.forecast[i].high+= '&deg;'+ unit;
+					data.weather.forecast[i].low += '&deg;' + unit;
+
+				}
+				
+				YUI().use('datatable', function(y)
+				{
+
+					var data1 = [
+					{ Day: data.weather.forecast[0].day, Weather: data.weather.forecast[0].text,   High: data.weather.forecast[0].high, Low: data.weather.forecast[0].low },
+					{ Day: data.weather.forecast[1].day, Weather: data.weather.forecast[1].text,   High: data.weather.forecast[1].high, Low: data.weather.forecast[1].low },
+					{ Day: data.weather.forecast[2].day, Weather: data.weather.forecast[2].text,   High: data.weather.forecast[2].high, Low: data.weather.forecast[2].low },
+					{ Day: data.weather.forecast[3].day, Weather: data.weather.forecast[3].text,   High: data.weather.forecast[3].high, Low: data.weather.forecast[3].low },
+					{ Day: data.weather.forecast[4].day, Weather: data.weather.forecast[4].text,   High: data.weather.forecast[4].high, Low: data.weather.forecast[4].low }
+					];
+
+					var table = new y.DataTable({
+					columns: ["Day", "Weather", {key:"High", className: 'yui3',allowHTML:true},{key:"Low",className:'yui4',allowHTML:true}],
+					data: data1,
+					caption: {value:"Forecast",classname:'cap'}
+					});
+					
+					$("#forecaster").html("");
+					$("#link").html('View Full Details On <br/><a href=' + data.weather.link+' target="_blank"><img src=\"ynewsimage.gif\" alt=\"Yahoo News\"/></a>');
+					table.render("#forecaster");
+					
+				});
+							
+					
+
+
+
+			},
+			error:function(){
+			$("#emp").hide();
+			$("#error").show();
+			$('#error').html('<h1 class="ch">Zero Results Found!</h1>');
+			}
+	});
+}
+function hided()
+{
+$("#emp").hide();
+$("#error").hide();
+}
+</script>
+</head>
+<style type="text/css">
+body
+{
+	background-image:url('sky.jpg');
+	background-repeat:no-repeat;
+	font-family:Sans-serif;
+	color: white; 
+	margin-left: 4%;
+	
+}
+div{
+padding-top:0px;
+padding-bottom:0px;
+spa
+}
+h1{ font-size:58;}
+.yui3{ color: orange; font-weight: bold;}
+.yui4{ color: blue; font-weight: bold;}
+a:visited, a:link, a:hover, a:active{ color: white; }
+h1.temps { font-size: 75; }
+td.cast { color: white;}
+.ch { color: white;}
+.ch2 { color: white; margin-bottom:0px;}
+#link { position: fixed; right: 20; bottom: 20; }
+a.city:link, a.city:visited, a.city:hover, a.city:active {text-decoration:none;}
+.ah{text-decoration: none;}
+table th, 
+table td {border:none;}
+td { color: black; }
+
+.cap{font-family:Sans-serif;
+	color: white; }
+
+
+</style>
+
+<body class="yui3-skin-sam" onload="hided()" >
+<div id="fb-root"></div>
+
+<br/>
+<div >
+<form class="pure-form" >
+<font size="5">Location : &nbsp;&nbsp;</font> 
+<input type="text" class="pure-input-1-3" name="location" id="location" size="30" placeholder="Enter city or zipcode">
+<input type="button" class="yui3-button" value="Submit" onClick="return weather()">
+</form>
+
+
+</div>
+
+
+
+
+
+
+<div id="emp">
+
+<div id="city" class="cast"></div>
+<div id="regioncountry" class="cast"> </div>
+
+<div class="yui3-widget-bd" id="image" class="cast"> </div>
+<div id="high" class="yui3-normalized"> </div>
+<div id="low" class="yui3-normalized"> </div>
+<div id="forecast1" class="yui3-normalized">
+
+<div class='yui3-g'>
+   <div class="yui3-u-1-4" id="temps"></div>
+   <div class="yui3-u-1-4" >
+		<div align=left>Forecast</div>
+		<div style="padding-top:0px;" id="forecaster" ></div>
+   </div>
+   <div class="yui3-u-1-4">
+			<table align="center" id= "facebook">
+			
+					<tr><td class="cast"><input name="type" type="radio" id="current" value="current" checked="checked"/> Post Current Weather <br/></tr></td>
+					<tr><td class="cast"><input name="type" type="radio" id="forecast" value="forecast"/> Post Weather Forecast <br/></tr></td>
+					<tr><td><a href="#" onclick="postfb()"><img src="fb.jpg" height="70px" width="auto"/></a></tr></td>
+			</table>
+   
+   
+   </div>
+</div>
+<br/>        
+<div id="link" align="right">
+	
+</div>
+
+
+
+
+
+</div>           
+    
+</div>           
+        
+<div id="error"></div>
+
+
+
+
+</body>
+</html>
+
